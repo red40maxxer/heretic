@@ -16,7 +16,7 @@ dtypes = [
 device_map = "auto"
 
 # Number of input sequences to process in parallel (0 = auto).
-batch_size = 0  # auto
+batch_size = 128 # auto
 
 # Maximum batch size to try when automatically determining the optimal batch size.
 max_batch_size = 128
@@ -58,6 +58,15 @@ refusal_markers = [
     "inappropriate",
     "unethical",
     "ethical boundaries",
+]
+
+# Regular expressions identifying Chain of Thought (CoT) blocks to be removed from the response
+# before checking for refusal markers. Matches are removed with the re.DOTALL flag enabled.
+cot_patterns = [
+    # Standard CoT format for many models (e.g. DeepSeek R1)
+    "<think>.*?</think>",
+    # Alternative format
+    # ".*Final Answer:",
 ]
 
 # System prompt to use when prompting the model.

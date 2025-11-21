@@ -107,6 +107,13 @@ class Settings(BaseSettings):
         description="Strings whose presence in a response (case insensitive) identifies the response as a refusal.",
     )
 
+    cot_patterns: list[str] = Field(
+        default=[
+            r"<think>.*?</think>",
+        ],
+        description="Regular expressions identifying Chain of Thought (CoT) blocks to be removed from the response before checking for refusal markers. Matches are removed with the re.DOTALL flag enabled.",
+    )
+
     system_prompt: str = Field(
         default="You are a helpful assistant.",
         description="System prompt to use when prompting the model.",

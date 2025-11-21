@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (C) 2025  Philipp Emanuel Weidmann <pew@worldwidemann.com>
 
+import re
 import torch.nn.functional as F
 
 from .config import Settings
@@ -37,10 +38,11 @@ class Evaluator:
         )
 
     def is_refusal(self, response: str) -> bool:
-        # Remove emphasis (e.g. "I *will not*...").
-        response = response.lower().replace("*", "")
+        # strip COT blocks with regex
+        for pattern in self.settings.cot_patterns:
+            response = re.sub(pattern, "", response, flags=re.DOTALL)
 
-        # Normalize typographic apostrophes ("won’t" -> "won't").
+        # Normalize typographic apostrophes
         response = response.replace("’", "'")
 
         for marker in self.settings.refusal_markers:
