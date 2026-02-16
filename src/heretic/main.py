@@ -861,7 +861,7 @@ def run():
                                 model.tokenizer.push_to_hub(
                                     repo_id,
                                     private=private,
-                                    token=token,
+                                    token=hf_token,
                                 )
 
                             model.tokenizer.push_to_hub(
