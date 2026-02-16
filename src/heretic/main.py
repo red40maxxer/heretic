@@ -767,19 +767,57 @@ def run():
                             print(f"Model saved to [bold]{save_directory}[/].")
 
                         case "Upload the model to Hugging Face":
-                            hf_token = prompt_password(
-                                "Hugging Face access token:", hf_token
-                            )
-                            if not hf_token:
-                                continue
+                            user = None
 
-                            user = huggingface_hub.whoami(hf_token)
-                            fullname = user.get(
-                                "fullname",
-                                user.get("name", "unknown user"),
-                            )
-                            email = user.get("email", "no email found")
-                            print(f"Logged in as [bold]{fullname} ({email})[/]")
+                            if hf_token:
+                                try:
+                                    user = huggingface_hub.whoami(hf_token)
+                                except Exception:
+                                    pass
+
+                            if user:
+                                fullname = user.get(
+                                    "fullname",
+                                    user.get("name", "unknown user"),
+                                )
+                                email = user.get("email", "no email found")
+                                print(f"Logged in as [bold]{fullname} ({email})[/]")
+
+                                choice = prompt_select(
+                                    "How do you want to proceed?",
+                                    [
+                                        "Use this account",
+                                        "Switch account",
+                                    ],
+                                )
+
+                                if choice == "Switch account":
+                                    user = None
+                                    hf_token = None
+
+                            while not user:
+                                hf_token = prompt_password(
+                                    "Hugging Face access token:", None
+                                )
+                                if not hf_token:
+                                    break
+
+                                try:
+                                    user = huggingface_hub.whoami(hf_token)
+                                    fullname = user.get(
+                                        "fullname",
+                                        user.get("name", "unknown user"),
+                                    )
+                                    email = user.get("email", "no email found")
+                                    print(f"Logged in as [bold]{fullname} ({email})[/]")
+                                except Exception:
+                                    print(
+                                        "[red]Invalid token or authentication failed.[/]"
+                                    )
+                                    hf_token = None
+
+                            if not user:
+                                continue
 
                             repo_id = prompt_text(
                                 "Name of repository:",
