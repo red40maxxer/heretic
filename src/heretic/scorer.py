@@ -19,8 +19,6 @@ if TYPE_CHECKING:
     from .config import Settings as HereticSettings
     from .model import Model
 
-FinishReason = Literal["len", "eos", "unk", "empty"]
-
 
 @dataclass
 class Score:
