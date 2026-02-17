@@ -612,6 +612,27 @@ def run():
         email = user.get("email", "no email found")
         print(f"Logged in as [bold]{fullname} ({email})[/]")
 
+    def _validate_hf_token(
+        token: str | None,
+        *,
+        existing_token: bool = False,
+    ) -> tuple[dict | None, str | None]:
+        """Validate HF token and return (user, token). Returns (None, None) on failure."""
+        if not token:
+            return None, None
+        try:
+            user = huggingface_hub.whoami(token)
+            _print_hf_user_info(user)
+            return user, token
+        except Exception:
+            if existing_token:
+                print(
+                    "[red]Failed to validate the existing Hugging Face token. It might be expired or invalid.[/]"
+                )
+            else:
+                print("[red]Invalid token or authentication failed.[/]")
+            return None, None
+
     while True:
         # If no trials at all have been evaluated, the study must have been stopped
         # by pressing Ctrl+C while the first trial was running. In this case, we just
@@ -780,19 +801,12 @@ def run():
 
                         case "Upload the model to Hugging Face":
                             user = None
-
                             if hf_token:
-                                try:
-                                    user = huggingface_hub.whoami(hf_token)
-                                except Exception:
-                                    print(
-                                        "[red]Failed to validate the existing Hugging Face token. It might be expired or invalid.[/]"
-                                    )
-                                    hf_token = None
+                                user, hf_token = _validate_hf_token(
+                                    hf_token, existing_token=True
+                                )
 
                             if user:
-                                _print_hf_user_info(user)
-
                                 try:
                                     choice = prompt_select(
                                         "How do you want to proceed?",
@@ -813,15 +827,9 @@ def run():
                                 if not hf_token:
                                     break
 
-                                try:
-                                    user = huggingface_hub.whoami(hf_token)
-                                    _print_hf_user_info(user)
-
-                                except Exception:
-                                    print(
-                                        "[red]Invalid token or authentication failed.[/]"
-                                    )
-                                    hf_token = None
+                                user, hf_token = _validate_hf_token(
+                                    hf_token, existing_token=False
+                                )
 
                             if not user:
                                 continue
