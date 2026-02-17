@@ -859,12 +859,11 @@ def run():
                                 )
                                 del merged_model
                                 empty_cache()
-
-                            model.tokenizer.push_to_hub(
-                                repo_id,
-                                private=private,
-                                token=hf_token,
-                            )
+                                model.tokenizer.push_to_hub(
+                                    repo_id,
+                                    private=private,
+                                    token=hf_token,
+                                )
 
                             # If the model path exists locally and includes the
                             # card, use it directly. If the model path doesn't
