@@ -10,6 +10,7 @@ from dataclasses import asdict
 from importlib.metadata import version
 from os.path import commonprefix
 from pathlib import Path
+from typing import Any
 
 import huggingface_hub
 import optuna
@@ -604,7 +605,7 @@ def run():
     if count_completed_trials() == settings.n_trials:
         study.set_user_attr("finished", True)
 
-    def _print_hf_user_info(user: dict):
+    def print_hf_user_info(user: dict[str, Any]):
         fullname = user.get(
             "fullname",
             user.get("name", "unknown user"),
@@ -612,7 +613,7 @@ def run():
         email = user.get("email", "no email found")
         print(f"Logged in as [bold]{fullname} ({email})[/]")
 
-    def _validate_hf_token(
+    def validate_hf_token(
         token: str | None,
         *,
         existing_token: bool = False,
@@ -622,7 +623,7 @@ def run():
             return None, None
         try:
             user = huggingface_hub.whoami(token)
-            _print_hf_user_info(user)
+            print_hf_user_info(user)
             return user, token
         except Exception:
             if existing_token:
@@ -802,7 +803,7 @@ def run():
                         case "Upload the model to Hugging Face":
                             user = None
                             if hf_token:
-                                user, hf_token = _validate_hf_token(
+                                user, hf_token = validate_hf_token(
                                     hf_token, existing_token=True
                                 )
 
@@ -827,7 +828,7 @@ def run():
                                 if not hf_token:
                                     break
 
-                                user, hf_token = _validate_hf_token(
+                                user, hf_token = validate_hf_token(
                                     hf_token, existing_token=False
                                 )
 
