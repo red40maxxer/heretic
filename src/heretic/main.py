@@ -786,28 +786,30 @@ def run():
                                     user = huggingface_hub.whoami(hf_token)
                                 except Exception:
                                     print(
-                                        "[yellow]Warning: Failed to validate the existing Hugging Face token. It might be expired or invalid.[/]"
+                                        "[red]Failed to validate the existing Hugging Face token. It might be expired or invalid.[/]"
                                     )
+                                    hf_token = None
 
                             if user:
                                 _print_hf_user_info(user)
 
-                                choice = prompt_select(
-                                    "How do you want to proceed?",
-                                    [
-                                        "Use this account",
-                                        "Switch account",
-                                    ],
-                                )
+                                try:
+                                    choice = prompt_select(
+                                        "How do you want to proceed?",
+                                        [
+                                            "Use this account",
+                                            "Switch account",
+                                        ],
+                                    )
 
-                                if choice == "Switch account":
-                                    user = None
-                                    hf_token = None
+                                    if choice == "Switch account":
+                                        user = None
+                                        hf_token = None
+                                except KeyboardInterrupt:
+                                    break
 
                             while not user:
-                                hf_token = prompt_password(
-                                    "Hugging Face access token:"
-                                )
+                                hf_token = prompt_password("Hugging Face access token:")
                                 if not hf_token:
                                     break
 
