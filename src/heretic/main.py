@@ -806,7 +806,7 @@ def run():
 
                             while not user:
                                 hf_token = prompt_password(
-                                    "Hugging Face access token:", None
+                                    "Hugging Face access token:"
                                 )
                                 if not hf_token:
                                     break
