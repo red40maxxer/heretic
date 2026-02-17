@@ -812,6 +812,7 @@ def run():
                                     break
 
                                 try:
+                                    user = huggingface_hub.whoami(hf_token)
                                     _print_hf_user_info(user)
 
                                 except Exception:
