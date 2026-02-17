@@ -604,6 +604,14 @@ def run():
     if count_completed_trials() == settings.n_trials:
         study.set_user_attr("finished", True)
 
+    def _print_hf_user_info(user: dict):
+        fullname = user.get(
+            "fullname",
+            user.get("name", "unknown user"),
+        )
+        email = user.get("email", "no email found")
+        print(f"Logged in as [bold]{fullname} ({email})[/]")
+
     while True:
         # If no trials at all have been evaluated, the study must have been stopped
         # by pressing Ctrl+C while the first trial was running. In this case, we just
@@ -777,15 +785,12 @@ def run():
                                 try:
                                     user = huggingface_hub.whoami(hf_token)
                                 except Exception:
-                                    pass
+                                    print(
+                                        "[yellow]Warning: Failed to validate the existing Hugging Face token. It might be expired or invalid.[/]"
+                                    )
 
                             if user:
-                                fullname = user.get(
-                                    "fullname",
-                                    user.get("name", "unknown user"),
-                                )
-                                email = user.get("email", "no email found")
-                                print(f"Logged in as [bold]{fullname} ({email})[/]")
+                                _print_hf_user_info(user)
 
                                 choice = prompt_select(
                                     "How do you want to proceed?",
@@ -807,13 +812,8 @@ def run():
                                     break
 
                                 try:
-                                    user = huggingface_hub.whoami(hf_token)
-                                    fullname = user.get(
-                                        "fullname",
-                                        user.get("name", "unknown user"),
-                                    )
-                                    email = user.get("email", "no email found")
-                                    print(f"Logged in as [bold]{fullname} ({email})[/]")
+                                    _print_hf_user_info(user)
+
                                 except Exception:
                                     print(
                                         "[red]Invalid token or authentication failed.[/]"
@@ -858,11 +858,6 @@ def run():
                                 )
                                 del merged_model
                                 empty_cache()
-                                model.tokenizer.push_to_hub(
-                                    repo_id,
-                                    private=private,
-                                    token=hf_token,
-                                )
 
                             model.tokenizer.push_to_hub(
                                 repo_id,
@@ -870,8 +865,6 @@ def run():
                                 token=hf_token,
                             )
 
-                            # If the model path doesn't exist locally, it can be assumed
-                            # to be a model hosted on the Hugging Face Hub, in which case
                             # If the model path exists locally and includes the
                             # card, use it directly. If the model path doesn't
                             # exist locally, it can be assumed to be a model
