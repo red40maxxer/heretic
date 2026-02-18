@@ -596,6 +596,7 @@ class Model:
                 skip_special_tokens=skip_special_tokens,
             ):
                 responses.append(response)
+                
         return responses
 
     def get_residuals(self, prompts: list[Prompt]) -> Tensor:
