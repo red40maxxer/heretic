@@ -596,7 +596,7 @@ class Model:
                 skip_special_tokens=skip_special_tokens,
             ):
                 responses.append(response)
-                
+
         return responses
 
     def get_residuals(self, prompts: list[Prompt]) -> Tensor:
@@ -652,8 +652,6 @@ class Model:
 
         return torch.cat(residuals, dim=0)
 
-    # We work with logprobs rather than probabilities for numerical stability
-    # when computing the KL divergence.
     def get_logits(self, prompts: list[Prompt]) -> Tensor:
         # We only generate one token, and we return the raw logits over the vocabulary
         # at that token position, for each prompt.
