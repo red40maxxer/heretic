@@ -605,7 +605,7 @@ def run():
     if count_completed_trials() == settings.n_trials:
         study.set_user_attr("finished", True)
 
-    def print_hf_user_info(user: dict[str, Any]):
+    def print_hf_user_info(user: dict[str, Any]) -> None:
         fullname = user.get(
             "fullname",
             user.get("name", "unknown user"),
