@@ -614,27 +614,30 @@ def run():
         print(f"Logged in as [bold]{fullname} ({email})[/]")
 
     def authenticate_hf(token: str | None) -> tuple[dict[str, Any], str]:
-        # If there is already an existing HF token,
-        # (either externally through hf auth login or a previous upload),
-        # allow the user to switch accounts if they want
+        # Try to use an existing token (from env, hf auth login, or a previous upload).
         if token:
             try:
                 user = huggingface_hub.whoami(token)
                 print_hf_user_info(user)
-                if (
-                    prompt_select(
-                        "How do you want to proceed?",
-                        ["Use this account", "Switch account"],
-                    )
-                    == "Use this account"
-                ):
+                choice = prompt_select(
+                    "How do you want to proceed?",
+                    ["Use this account", "Switch account"],
+                )
+                if choice is None:
+                    raise KeyboardInterrupt
+                if choice == "Use this account":
                     return user, token
+                # User chose "Switch account"; fall through to prompt for new token.
             except Exception as error:
                 print(f"[red]Failed to validate the Hugging Face token: ({error})[/]")
+                # Fall through to prompt for a new token.
 
-        # Otherwise, keep prompting the user for a valid token until they cancel.
+        # No valid token yet (first time, switch account, or validation failed).
+        # Prompt for a token until we get a valid one or the user cancels.
         while True:
             token = prompt_password("Hugging Face access token:")
+            if token is None:
+                raise KeyboardInterrupt
             try:
                 user = huggingface_hub.whoami(token)
                 print_hf_user_info(user)
@@ -812,7 +815,7 @@ def run():
                             try:
                                 user, hf_token = authenticate_hf(hf_token)
                             except KeyboardInterrupt:
-                                break
+                                continue
 
                             repo_id = prompt_text(
                                 "Name of repository:",
