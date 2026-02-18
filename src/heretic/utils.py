@@ -136,7 +136,6 @@ def prompt_path(message: str) -> str:
 def prompt_password(message: str) -> str:
     if is_notebook():
         print()
-        # getpass doesn't support a default.
         return getpass.getpass(message)
     else:
         return questionary.password(message).ask()

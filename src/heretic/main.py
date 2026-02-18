@@ -613,21 +613,38 @@ def run():
         email = user.get("email", "no email found")
         print(f"Logged in as [bold]{fullname} ({email})[/]")
 
-    def validate_hf_token(
-        token: str | None,
-        *,
-        invalid_message: str = "[red]Invalid token or authentication failed.[/]",
-    ) -> tuple[dict | None, str | None]:
-        """Validate HF token and return (user, token). Returns (None, None) on failure."""
-        if not token:
-            return None, None
-        try:
-            user = huggingface_hub.whoami(token)
-            print_hf_user_info(user)
-            return user, token
-        except Exception:
-            print(invalid_message)
-            return None, None
+    def authenticate_hf(token: str | None) -> tuple[dict[str, Any], str]:
+        # If there is already an existing HF token,
+        # (either externally through hf auth login or a previous upload),
+        # allow the user to switch accounts if they want
+        if token:
+            try:
+                user = huggingface_hub.whoami(token)
+                print_hf_user_info(user)
+                if (
+                    prompt_select(
+                        "How do you want to proceed?",
+                        ["Use this account", "Switch account"],
+                    )
+                    == "Use this account"
+                ):
+                    return user, token
+            except Exception as error:
+                print(
+                    f"[red]Failed to validate the Hugging Face token: ({ error})[/]"
+                )
+
+        # Otherwise, keep prompting the user for a valid token until they cancel.
+        while True:
+            token = prompt_password("Hugging Face access token:")
+            try:
+                user = huggingface_hub.whoami(token)
+                print_hf_user_info(user)
+                return user, token
+            except Exception as error:
+                print(
+                    f"[red]Failed to validate the Hugging Face token: ({error})[/]"
+                )
 
     while True:
         # If no trials at all have been evaluated, the study must have been stopped
@@ -796,38 +813,10 @@ def run():
                             print(f"Model saved to [bold]{save_directory}[/].")
 
                         case "Upload the model to Hugging Face":
-                            user = None
-                            if hf_token:
-                                user, hf_token = validate_hf_token(
-                                    hf_token,
-                                    invalid_message="[red]Failed to validate the existing Hugging Face token. It might be expired or invalid.[/]",
-                                )
-
-                            if user:
-                                try:
-                                    choice = prompt_select(
-                                        "How do you want to proceed?",
-                                        [
-                                            "Use this account",
-                                            "Switch account",
-                                        ],
-                                    )
-
-                                    if choice == "Switch account":
-                                        user = None
-                                        hf_token = None
-                                except KeyboardInterrupt:
-                                    break
-
-                            while not user:
-                                hf_token = prompt_password("Hugging Face access token:")
-                                if not hf_token:
-                                    break
-
-                                user, hf_token = validate_hf_token(hf_token)
-
-                            if not user:
-                                continue
+                            try:
+                                user, hf_token = authenticate_hf(hf_token)
+                            except KeyboardInterrupt:
+                                break
 
                             repo_id = prompt_text(
                                 "Name of repository:",
