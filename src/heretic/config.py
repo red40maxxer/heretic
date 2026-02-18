@@ -2,7 +2,7 @@
 # Copyright (C) 2025  Philipp Emanuel Weidmann <pew@worldwidemann.com>
 
 from enum import Enum
-from typing import Dict
+from typing import Any, Dict
 
 from optuna.study import StudyDirection
 from pydantic import BaseModel, Field, field_validator
@@ -80,7 +80,7 @@ class ScorerConfig:
 
     @field_validator("direction", mode="before")
     @classmethod
-    def parse_direction(cls, v):
+    def parse_direction(cls, v: Any) -> StudyDirection:
         if isinstance(v, StudyDirection):
             return v
         if isinstance(v, int):
@@ -200,8 +200,8 @@ class Settings(BaseSettings):
         default_factory=list,
         description=(
             "List of scorer plugin configs. Each entry is an object"
-            " {plugin=<plugin>, direction=<direction>, scale=<scale>}."
-            " <direction> is one of {0 (NOT_SET = do not optimize), 1 (MINIMIZE), 2 (MAXIMIZE)}."
+            " { plugin = <plugin>, direction = <direction>, scale = <scale>, instance_name = <optional> }."
+            " <direction> is one of 'minimize', 'maximize', 'not_set' (aka do not optimize)."
         ),
     )
 
