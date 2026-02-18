@@ -628,7 +628,7 @@ def run():
                 if choice == "Use this account":
                     return user, token
                 # User chose "Switch account"; fall through to prompt for new token.
-            except Exception as error:
+            except huggingface_hub.errors.HfHubHTTPError as error:
                 print(f"[red]Failed to validate the Hugging Face token: ({error})[/]")
                 # Fall through to prompt for a new token.
 
@@ -642,7 +642,7 @@ def run():
                 user = huggingface_hub.whoami(token)
                 print_hf_user_info(user)
                 return user, token
-            except Exception as error:
+            except huggingface_hub.errors.HfHubHTTPError as error:
                 print(f"[red]Failed to validate the Hugging Face token: ({error})[/]")
 
     while True:
