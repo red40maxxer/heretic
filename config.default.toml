@@ -68,7 +68,7 @@ orthogonalize_direction = false
 # How to apply row normalization of the weights. Options:
 # "none" (no normalization),
 # "pre" (compute LoRA adapter relative to row-normalized weights),
-# "full" (like "pre", but re-normalizes to preserve original row magnitudes).
+# "full" (like "pre", but renormalizes to preserve original row magnitudes).
 row_normalization = "none"
 
 # The rank of the LoRA adapter to use when "full" row normalization is used.
