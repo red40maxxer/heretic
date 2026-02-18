@@ -630,9 +630,7 @@ def run():
                 ):
                     return user, token
             except Exception as error:
-                print(
-                    f"[red]Failed to validate the Hugging Face token: ({ error})[/]"
-                )
+                print(f"[red]Failed to validate the Hugging Face token: ({error})[/]")
 
         # Otherwise, keep prompting the user for a valid token until they cancel.
         while True:
@@ -642,9 +640,7 @@ def run():
                 print_hf_user_info(user)
                 return user, token
             except Exception as error:
-                print(
-                    f"[red]Failed to validate the Hugging Face token: ({error})[/]"
-                )
+                print(f"[red]Failed to validate the Hugging Face token: ({error})[/]")
 
     while True:
         # If no trials at all have been evaluated, the study must have been stopped
