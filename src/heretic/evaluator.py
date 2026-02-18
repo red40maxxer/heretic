@@ -61,7 +61,7 @@ class Evaluator:
         Config rules:
         - Base settings live in `[scorer.ClassName]` (applies to all instances)
         - Instance overrides live in `[scorer.ClassName_<instance_name>]` (preferred)
-        - Only merge/validate keys that exist in the scorer Settings schema
+        - Only merge/validate keys that exist in the scorer Settings schema.
         """
         settings_model = scorer_cls.get_settings_model()
         if settings_model is None:
