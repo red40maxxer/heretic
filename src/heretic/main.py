@@ -616,7 +616,7 @@ def run():
     def validate_hf_token(
         token: str | None,
         *,
-        existing_token: bool = False,
+        invalid_message: str = "[red]Invalid token or authentication failed.[/]",
     ) -> tuple[dict | None, str | None]:
         """Validate HF token and return (user, token). Returns (None, None) on failure."""
         if not token:
@@ -626,12 +626,7 @@ def run():
             print_hf_user_info(user)
             return user, token
         except Exception:
-            if existing_token:
-                print(
-                    "[red]Failed to validate the existing Hugging Face token. It might be expired or invalid.[/]"
-                )
-            else:
-                print("[red]Invalid token or authentication failed.[/]")
+            print(invalid_message)
             return None, None
 
     while True:
@@ -804,7 +799,8 @@ def run():
                             user = None
                             if hf_token:
                                 user, hf_token = validate_hf_token(
-                                    hf_token, existing_token=True
+                                    hf_token,
+                                    invalid_message="[red]Failed to validate the existing Hugging Face token. It might be expired or invalid.[/]",
                                 )
 
                             if user:
@@ -828,9 +824,7 @@ def run():
                                 if not hf_token:
                                     break
 
-                                user, hf_token = validate_hf_token(
-                                    hf_token, existing_token=False
-                                )
+                                user, hf_token = validate_hf_token(hf_token)
 
                             if not user:
                                 continue
