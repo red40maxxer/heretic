@@ -613,12 +613,20 @@ def run():
         email = user.get("email", "no email found")
         print(f"Logged in as [bold]{fullname} ({email})[/]")
 
+    def validate_hf_token(t: str) -> dict[str, Any] | None:
+        try:
+            user = huggingface_hub.whoami(t)
+            print_hf_user_info(user)
+            return user
+        except huggingface_hub.errors.HfHubHTTPError as error:
+            print(f"[red]Failed to validate the Hugging Face token: ({error})[/]")
+            return None
+
     def authenticate_hf(token: str | None) -> tuple[dict[str, Any], str]:
         # Try to use an existing token (from env, hf auth login, or a previous upload).
         if token:
-            try:
-                user = huggingface_hub.whoami(token)
-                print_hf_user_info(user)
+            user = validate_hf_token(token)
+            if user:
                 choice = prompt_select(
                     "How do you want to proceed?",
                     ["Use this account", "Switch account"],
@@ -628,22 +636,16 @@ def run():
                 if choice == "Use this account":
                     return user, token
                 # User chose "Switch account"; fall through to prompt for new token.
-            except huggingface_hub.errors.HfHubHTTPError as error:
-                print(f"[red]Failed to validate the Hugging Face token: ({error})[/]")
-                # Fall through to prompt for a new token.
 
         # No valid token yet (first time, switch account, or validation failed).
         # Prompt for a token until we get a valid one or the user cancels.
         while True:
-            token = prompt_password("Hugging Face access token:")
-            if token is None:
+            new_token = prompt_password("Hugging Face access token:")
+            if new_token is None:
                 raise KeyboardInterrupt
-            try:
-                user = huggingface_hub.whoami(token)
-                print_hf_user_info(user)
-                return user, token
-            except huggingface_hub.errors.HfHubHTTPError as error:
-                print(f"[red]Failed to validate the Hugging Face token: ({error})[/]")
+            user = validate_hf_token(new_token)
+            if user:
+                return user, new_token
 
     while True:
         # If no trials at all have been evaluated, the study must have been stopped
