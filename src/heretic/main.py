@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# Copyright (C) 2025  Philipp Emanuel Weidmann <pew@worldwidemann.com>
+# Copyright (C) 2025-2026  Philipp Emanuel Weidmann <pew@worldwidemann.com> + contributors
 
 import math
 import os
@@ -100,26 +100,31 @@ def obtain_merge_strategy(settings: Settings) -> str | None:
             )
         print()
 
-    strategy = prompt_select(
-        "How do you want to proceed?",
-        choices=[
-            Choice(
-                title="Merge LoRA into full model"
-                + (
-                    ""
-                    if settings.quantization == QuantizationMethod.NONE
-                    else " (requires sufficient RAM)"
+        strategy = prompt_select(
+            "How do you want to proceed?",
+            choices=[
+                Choice(
+                    title="Merge LoRA into full model"
+                    + (
+                        ""
+                        if settings.quantization == QuantizationMethod.NONE
+                        else " (requires sufficient RAM)"
+                    ),
+                    value="merge",
                 ),
-                value="merge",
-            ),
-            Choice(
-                title="Save LoRA adapter only (can be merged later)",
-                value="adapter",
-            ),
-        ],
-    )
+                Choice(
+                    title="Cancel",
+                    value="cancel",
+                ),
+            ],
+        )
 
-    return strategy
+        if strategy == "cancel":
+            return None
+
+        return strategy
+    else:
+        return "merge"
 
 
 def run():
@@ -168,9 +173,15 @@ def run():
     # Adapted from https://github.com/huggingface/accelerate/blob/main/src/accelerate/commands/env.py
     if torch.cuda.is_available():
         count = torch.cuda.device_count()
-        print(f"Detected [bold]{count}[/] CUDA device(s):")
+        total_vram = sum(torch.cuda.mem_get_info(i)[1] for i in range(count))
+        print(
+            f"Detected [bold]{count}[/] CUDA device(s) ({total_vram / (1024**3):.2f} GB total VRAM):"
+        )
         for i in range(count):
-            print(f"* GPU {i}: [bold]{torch.cuda.get_device_name(i)}[/]")
+            vram = torch.cuda.mem_get_info(i)[1] / (1024**3)
+            print(
+                f"* GPU {i}: [bold]{torch.cuda.get_device_name(i)}[/] ({vram:.2f} GB)"
+            )
     elif is_xpu_available():
         count = torch.xpu.device_count()
         print(f"Detected [bold]{count}[/] XPU device(s):")
@@ -239,7 +250,7 @@ def run():
     except IndexError:
         existing_study = None
 
-    if existing_study is not None:
+    if existing_study is not None and settings.evaluate_model is None:
         choices = []
 
         if existing_study.user_attrs["finished"]:
@@ -763,8 +774,7 @@ def run():
                                 merged_model.save_pretrained(save_directory)
                                 del merged_model
                                 empty_cache()
-
-                            model.tokenizer.save_pretrained(save_directory)
+                                model.tokenizer.save_pretrained(save_directory)
 
                             print(f"Model saved to [bold]{save_directory}[/].")
 
@@ -821,18 +831,29 @@ def run():
                                 )
                                 del merged_model
                                 empty_cache()
+                                model.tokenizer.push_to_hub(
+                                    repo_id,
+                                    private=private,
+                                    token=token,
+                                )
 
-                            model.tokenizer.push_to_hub(
-                                repo_id,
-                                private=private,
-                                token=token,
-                            )
-
-                            # If the model path doesn't exist locally, it can be assumed
-                            # to be a model hosted on the Hugging Face Hub, in which case
+                            # If the model path exists locally and includes the
+                            # card, use it directly. If the model path doesn't
+                            # exist locally, it can be assumed to be a model
+                            # hosted on the Hugging Face Hub, in which case
                             # we can retrieve the model card.
-                            if not Path(settings.model).exists():
+                            model_path = Path(settings.model)
+                            if model_path.exists():
+                                card_path = (
+                                    model_path / huggingface_hub.constants.REPOCARD_NAME
+                                )
+                                if card_path.exists():
+                                    card = ModelCard.load(card_path)
+                                else:
+                                    card = None
+                            else:
                                 card = ModelCard.load(settings.model)
+                            if card is not None:
                                 if card.data is None:
                                     card.data = ModelCardData()
                                 if card.data.tags is None:
