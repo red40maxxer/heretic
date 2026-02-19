@@ -1,7 +1,6 @@
 # Rename this file to config.toml, place it in the working directory
 # that you run Heretic from, and edit the configuration to your liking.
 
-
 # List of PyTorch dtypes to try when loading model tensors.
 # If loading with a dtype fails, the next dtype in the list will be tried.
 dtypes = [
@@ -27,7 +26,6 @@ device_map = "auto"
 
 # Maximum memory to allocate per device.
 # max_memory = {"0": "20GB", "cpu": "64GB"}
-
 
 # Number of input sequences to process in parallel (0 = auto).
 batch_size = 0  # auto
