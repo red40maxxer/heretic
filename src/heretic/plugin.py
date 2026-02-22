@@ -265,3 +265,12 @@ class Plugin:
         if settings_model is None:
             return None
         return settings_model.model_validate(raw_namespace or {})
+
+    def init(self, ctx: Context) -> None:
+        """
+        Runs before the plugin's main functionality.
+
+        Override this in subclasses to do one-time setup (e.g. load prompts, compute
+        baselines).
+        """
+        return None
