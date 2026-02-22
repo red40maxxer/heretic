@@ -86,21 +86,6 @@ class Scorer(Plugin, ABC):
         """
         return self.__class__.__name__
 
-    @classmethod
-    def validate_contract(cls) -> None:
-        """
-        Validate the scorer contract.
-
-        - Scorer plugins must not define a constructor (`__init__`). Initialization is
-          handled by `Scorer.__init__` and an optional `init(ctx)` method.
-        - Scorer plugins may define `settings: <BaseModelSubclass>` to declare a settings schema.
-        """
-        if "__init__" in cls.__dict__:
-            raise TypeError(
-                f"{cls.__name__} must not define __init__(). "
-                "Use an optional init(ctx) method for scorer-specific initialization."
-            )
-
     def __init__(
         self,
         heretic_settings: HereticSettings,
