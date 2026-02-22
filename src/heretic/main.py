@@ -638,14 +638,12 @@ def run():
         def format_trial_title(trial: FrozenTrial) -> str:
             parts: list[str] = [f"[Trial {trial.user_attrs['index']:>3}]"]
 
-            values = trial.values
-            if values is None:
-                values = (trial.value,)  # type: ignore[assignment]
-
-            for name, val in zip(objective_names, values):
-                if val is None:
-                    continue
-                parts.append(f"{name}: {val:.4f}")
+            # We don't directly use the trial.values here since we need to show the
+            # CLI-formatted versions, which are stored in the trial's user attributes.
+            for score in trial.user_attrs["scores"]:
+                name = score["name"]
+                value = score["cli_display"]
+                parts.append(f"{name}: {value}")
 
             return ", ".join(parts)
 
