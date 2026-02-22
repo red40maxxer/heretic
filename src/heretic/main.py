@@ -635,6 +635,24 @@ def run():
             list(study.best_trials) if len(directions) > 1 else [study.best_trial]
         )
 
+        # Best trials isn't sorted, so sort by all the scores in non-decreasing order.
+        sorted_trials = sorted(
+            best_trials,
+            key=lambda trial: (
+                tuple(
+                    next(
+                        (
+                            s["value"]
+                            for s in trial.user_attrs.get("scores", [])
+                            if s.get("name") == name
+                        ),
+                        None,
+                    )
+                    for name in objective_names
+                )
+            ),
+        )
+
         def format_trial_title(trial: FrozenTrial) -> str:
             parts: list[str] = [f"[Trial {trial.user_attrs['index']:>3}]"]
 
@@ -649,7 +667,7 @@ def run():
 
         choices = [
             Choice(title=format_trial_title(trial), value=trial)
-            for trial in best_trials
+            for trial in sorted_trials
         ]
 
         choices.append(
