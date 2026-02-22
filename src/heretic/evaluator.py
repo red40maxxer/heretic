@@ -49,8 +49,22 @@ class Evaluator:
 
     def _print_baseline(self) -> None:
         """Print baseline scores summary."""
-        for s in self.baseline_scores:
-            print(f"* Baseline {s.name}: [bold]{s.cli_display}[/]")
+        for name, score in zip(self.get_score_names(), self.baseline_scores):
+            print(f"* Baseline {name}: [bold]{score.cli_display}[/]")
+
+    def _format_score_name(self, scorer: Scorer, instance_name: str | None) -> str:
+        if instance_name:
+            return f"{scorer.score_name} - {instance_name}"
+        return scorer.score_name
+
+    def get_score_names(self) -> list[str]:
+        """
+        Return stable display names for scores in scorer order.
+        """
+        return [
+            self._format_score_name(scorer, label)
+            for scorer, label in zip(self.scorers, self._scorer_instance_labels)
+        ]
 
     def _get_scorer_settings_raw(
         self, *, scorer_cls: type[Scorer], instance_name: str | None
@@ -147,40 +161,36 @@ class Evaluator:
     def get_scores(self) -> list[Score]:
         """
         Run all scorers and return their scores
-        If there are multiple instances of the same scorer, the `Score`'s `name`
-        is labeled externally as `<base> - <instance_name>`.
-
         Returns:
             List of Score from each scorer.
         """
         ctx = Context(settings=self.settings, model=self.model)
         scores: list[Score] = []
-        for scorer, label in zip(self.scorers, self._scorer_instance_labels):
-            s = scorer.get_score(ctx)
-            if label:
-                # Add label externally
-                s.name = f"{s.name} - {label}"
-            scores.append(s)
+        for scorer in self.scorers:
+            scores.append(scorer.get_score(ctx))
         return scores
 
     def get_baseline_scores(self) -> list[Score]:
         """
         Run all scorers and return their baseline scores
-        If there are multiple instances of the same scorer, the `Score`'s `name`
-        is labeled externally as `<base> - <instance_name>`.
-
         Returns:
             List of Score from each scorer.
         """
         ctx = Context(settings=self.settings, model=self.model)
         scores: list[Score] = []
-        for scorer, label in zip(self.scorers, self._scorer_instance_labels):
-            s = scorer.get_baseline_score(ctx)
-            if label:
-                # Add label externally
-                s.name = f"{s.name} - {label}"
-            scores.append(s)
+        for scorer in self.scorers:
+            scores.append(scorer.get_baseline_score(ctx))
         return scores
+
+    def get_objective_names(self) -> list[str]:
+        """
+        Return objective names for scores used in optimization.
+        """
+        return [
+            name
+            for cfg, name in zip(self._scorer_configs, self.get_score_names())
+            if cfg.direction != StudyDirection.NOT_SET
+        ]
 
     def get_objectives(self, scores: list[Score]) -> list[Score]:
         """Filter scores to only those used in optimization."""

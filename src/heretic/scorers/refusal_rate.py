@@ -107,7 +107,6 @@ class RefusalRate(Scorer):
             print()
 
         return Score(
-            name=self.score_name,
             value=float(refusal_count / len(self.prompts)),
             cli_display=f"{refusal_count}/{len(self.prompts)}",
             md_display=f"{refusal_count}/{len(self.prompts)}",

@@ -22,7 +22,6 @@ class Score:
     - `md_display`: formatted value in the HF model card
     """
 
-    name: str
     value: float
     cli_display: str
     md_display: str

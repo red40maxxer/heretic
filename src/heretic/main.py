@@ -414,10 +414,11 @@ def run():
         model.reset_model()
         print("* Evaluating...")
         scores = evaluator.get_scores()
+        score_names = evaluator.get_score_names()
         print()
         print("[bold]Metrics:[/]")
-        for s in scores:
-            print(f"  * {s.name}: [bold]{s.cli_display}[/]")
+        for name, score in zip(score_names, scores):
+            print(f"  * {name}: [bold]{score.cli_display}[/]")
         return
 
     print()
@@ -542,11 +543,12 @@ def run():
         model.abliterate(refusal_directions, direction_index, parameters)
         print("* Evaluating...")
         scores = evaluator.get_scores()
+        score_names = evaluator.get_score_names()
         objective_values = evaluator.get_objective_values(scores)
 
         print("  * Metrics:")
-        for s in scores:
-            print(f"    * {s.name}: [bold]{s.cli_display}[/]")
+        for name, score in zip(score_names, scores):
+            print(f"    * {name}: [bold]{score.cli_display}[/]")
 
         elapsed_time = time.perf_counter() - start_time
         remaining_time = (elapsed_time / (trial_index - start_index)) * (
@@ -560,7 +562,10 @@ def run():
             )
         trial.set_user_attr(
             "scores",
-            [s.__dict__ for s in scores],
+            [
+                {"name": name, **score.__dict__}
+                for name, score in zip(score_names, scores)
+            ],
         )
         print_memory_usage()
 
@@ -575,8 +580,7 @@ def run():
             raise TrialPruned()
 
     # Derive objective info from baseline scores
-    objectives = evaluator.get_objectives(evaluator.baseline_scores)
-    objective_names = [s.name for s in objectives]
+    objective_names = evaluator.get_objective_names()
     directions = evaluator.get_objective_directions()
 
     study = optuna.create_study(
@@ -862,9 +866,12 @@ def run():
                                 card.data.tags.append("uncensored")
                                 card.data.tags.append("decensored")
                                 card.data.tags.append("abliterated")
+                                baseline_score_names = evaluator.get_score_names()
                                 baseline_score_displays = {
-                                    s.name: s.md_display
-                                    for s in evaluator.baseline_scores
+                                    name: score.md_display
+                                    for name, score in zip(
+                                        baseline_score_names, evaluator.baseline_scores
+                                    )
                                 }
                                 card.text = (
                                     get_readme_intro(
