@@ -54,7 +54,9 @@ class Context:
         """Get model responses (cached within this context)."""
         key = self._cache_key(prompts)
         if key not in self._responses_cache:
-            self._responses_cache[key] = self._model.get_responses_batched(prompts)
+            self._responses_cache[key] = self._model.get_responses_batched(
+                prompts, skip_special_tokens=True
+            )
         return self._responses_cache[key]
 
     def get_logits(self, prompts: list[Prompt]) -> Tensor:
