@@ -288,15 +288,13 @@ def get_trial_parameters(trial: Trial) -> dict[str, str]:
 def get_readme_intro(
     settings: Settings,
     trial: Trial,
-    baseline_score_displays: dict[str, str] | None = None,
+    baseline_score_displays: dict[str, str],
 ) -> str:
     if Path(settings.model).exists():
         # Hide the path, which may contain private information.
         model_link = "a model"
     else:
         model_link = f"[{settings.model}](https://huggingface.co/{settings.model})"
-
-    baseline_score_displays = baseline_score_displays or {}
 
     scores_raw = trial.user_attrs["scores"]
     scores_by_name: dict[str, dict[str, object]] = {}
