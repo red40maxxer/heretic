@@ -11,6 +11,13 @@ from types import ModuleType
 from typing import Annotated, Any, TypeVar, Union, get_args, get_origin, get_type_hints
 
 from pydantic import BaseModel
+from torch import Tensor
+
+from heretic.utils import Prompt, load_prompts
+
+from .config import DatasetSpecification
+from .config import Settings as HereticSettings
+from .model import Model
 
 T = TypeVar("T")
 
@@ -127,6 +134,43 @@ def load_plugin(
     return plugin_cls
 
 
+class Context:
+    """
+    Runtime context passed to plugins
+
+    Provides plugin-safe access to the model.
+
+    Plugins must use `get_responses(...)`, `get_logits(...)`, etc.
+    Direct access to the underlying Model is intentionally not exposed.
+    """
+
+    def __init__(self, settings: HereticSettings, model: Model) -> None:
+        self._model = model
+        self._settings = settings
+        self._responses_cache: dict[tuple[tuple[str, str], ...], list[str]] = {}
+
+    def _cache_key(self, prompts: list[Prompt]) -> tuple[tuple[str, str], ...]:
+        return tuple((p.system, p.user) for p in prompts)
+
+    def get_responses(self, prompts: list[Prompt]) -> list[str]:
+        """Get model responses (cached within this context)."""
+        key = self._cache_key(prompts)
+        if key not in self._responses_cache:
+            self._responses_cache[key] = self._model.get_responses_batched(
+                prompts, skip_special_tokens=True
+            )
+        return self._responses_cache[key]
+
+    def get_logits(self, prompts: list[Prompt]) -> Tensor:
+        return self._model.get_logits_batched(prompts)
+
+    def get_residuals(self, prompts: list[Prompt]) -> Tensor:
+        return self._model.get_residuals_batched(prompts)
+
+    def load_prompts(self, specification: DatasetSpecification):
+        return load_prompts(self._settings, specification)
+
+
 class Plugin:
     """
     Base class for Heretic plugins.
@@ -154,7 +198,6 @@ class Plugin:
                 f"{cls.__name__} must not define __init__(). "
                 "Use an optional init(ctx) method for plugin-specific initialization."
             )
-
 
     @classmethod
     def get_settings_model(cls) -> type[BaseModel] | None:

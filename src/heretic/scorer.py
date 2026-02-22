@@ -6,14 +6,10 @@ from dataclasses import dataclass
 from typing import NoReturn
 
 from pydantic import BaseModel
-from torch import Tensor
 
-from heretic.plugin import Plugin
-from heretic.utils import Prompt, load_prompts
+from heretic.plugin import Context, Plugin
 
-from .config import DatasetSpecification
 from .config import Settings as HereticSettings
-from .model import Model
 
 
 @dataclass
@@ -30,43 +26,6 @@ class Score:
     value: float
     cli_display: str
     md_display: str
-
-
-class Context:
-    """
-    Runtime context passed to scorers
-
-    Provides scorer-safe access to the model.
-
-    Scorers must use `get_responses(...)`, `get_logits(...)`, etc.
-    Direct access to the underlying Model is intentionally not exposed.
-    """
-
-    def __init__(self, settings: HereticSettings, model: Model) -> None:
-        self._model = model
-        self._settings = settings
-        self._responses_cache: dict[tuple[tuple[str, str], ...], list[str]] = {}
-
-    def _cache_key(self, prompts: list[Prompt]) -> tuple[tuple[str, str], ...]:
-        return tuple((p.system, p.user) for p in prompts)
-
-    def get_responses(self, prompts: list[Prompt]) -> list[str]:
-        """Get model responses (cached within this context)."""
-        key = self._cache_key(prompts)
-        if key not in self._responses_cache:
-            self._responses_cache[key] = self._model.get_responses_batched(
-                prompts, skip_special_tokens=True
-            )
-        return self._responses_cache[key]
-
-    def get_logits(self, prompts: list[Prompt]) -> Tensor:
-        return self._model.get_logits_batched(prompts)
-
-    def get_residuals(self, prompts: list[Prompt]) -> Tensor:
-        return self._model.get_residuals_batched(prompts)
-
-    def load_prompts(self, specification: DatasetSpecification):
-        return load_prompts(self._settings, specification)
 
 
 class Scorer(Plugin, ABC):
