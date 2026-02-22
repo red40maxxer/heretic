@@ -50,23 +50,7 @@ class Scorer(Plugin, ABC):
         heretic_settings: HereticSettings,
         settings: BaseModel | None = None,
     ):
-        super().__init__(settings=settings)
-
-        # Scorers that declare a settings schema should always receive
-        # validated plugin settings from the evaluator.
-        settings_model = self.__class__.get_settings_model()
-        if settings_model is not None:
-            if settings is None:
-                raise ValueError(
-                    f"{self.__class__.__name__} requires settings to be validated"
-                )
-            if not isinstance(settings, settings_model):
-                raise TypeError(
-                    f"{self.__class__.__name__}.settings must be an instance of "
-                    f"{settings_model.__name__}"
-                )
-
-        self.heretic_settings = heretic_settings
+        super().__init__(heretic_settings=heretic_settings, settings=settings)
 
     @property
     def model(self) -> NoReturn:  # type: ignore[override]

@@ -181,8 +181,24 @@ class Plugin:
       an instance as `settings`.
     """
 
-    def __init__(self, *, settings: BaseModel | None = None):
+    def __init__(
+        self, *, heretic_settings: HereticSettings, settings: BaseModel | None = None
+    ):
+        # Plugins that declare a settings schema should always receive
+        # validated plugin settings from the evaluator.
+        settings_model = self.__class__.get_settings_model()
+        if settings_model is not None:
+            if settings is None:
+                raise ValueError(
+                    f"{self.__class__.__name__} requires settings to be validated"
+                )
+            if not isinstance(settings, settings_model):
+                raise TypeError(
+                    f"{self.__class__.__name__}.settings must be an instance of "
+                    f"{settings_model.__name__}"
+                )
         self.settings = settings
+        self.heretic_settings = heretic_settings
 
     @classmethod
     def validate_contract(cls) -> None:
