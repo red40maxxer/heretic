@@ -1,23 +1,19 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# Copyright (C) 2025  Philipp Emanuel Weidmann <pew@worldwidemann.com>
-
-from __future__ import annotations
+# Copyright (C) 2025-2026  Philipp Emanuel Weidmann <pew@worldwidemann.com> + contributors
 
 from abc import ABC
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, NoReturn
+from typing import NoReturn
 
 from pydantic import BaseModel
+from torch import Tensor
 
 from heretic.plugin import Plugin
 from heretic.utils import Prompt, load_prompts
 
-if TYPE_CHECKING:
-    from torch import Tensor
-
-    from .config import DatasetSpecification
-    from .config import Settings as HereticSettings
-    from .model import Model
+from .config import DatasetSpecification
+from .config import Settings as HereticSettings
+from .model import Model
 
 
 @dataclass
@@ -61,10 +57,10 @@ class Context:
             self._responses_cache[key] = self._model.get_responses_batched(prompts)
         return self._responses_cache[key]
 
-    def get_logits(self, prompts: list[Prompt]) -> "Tensor":
+    def get_logits(self, prompts: list[Prompt]) -> Tensor:
         return self._model.get_logits_batched(prompts)
 
-    def get_residuals(self, prompts: list[Prompt]) -> "Tensor":
+    def get_residuals(self, prompts: list[Prompt]) -> Tensor:
         return self._model.get_residuals_batched(prompts)
 
     def load_prompts(self, specification: DatasetSpecification):
