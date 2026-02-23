@@ -61,6 +61,8 @@ class Scorer(Plugin, ABC):
     def get_score(self, ctx: Context) -> Score:
         """
         Return a `Score` given the evaluation context.
+        The `value` of the `Score` must be of the order of magnitude 1
+        to ensure that all scores are comparable during co-optimization.
         """
         raise NotImplementedError(
             f"{self.__class__.__name__} must implement get_score()"

@@ -53,11 +53,11 @@ residual_plot_style = "dark_background"
 
 # List of scorers to evaluate.
 # Each entry is an object:
-# { plugin = <plugin>, direction = <direction>, scale = <scale>, instance_name = <optional> }
+# { plugin = <plugin>, direction = <direction>, instance_name = <optional> }
 # where <direction> is one of "minimize", "maximize", "not_set" (aka do not optimize)
 scorers = [
-    { plugin = "heretic.scorers.refusal_rate.RefusalRate", direction = "minimize", scale = 1.0 },
-    { plugin = "heretic.scorers.kl_divergence.KLDivergence", direction = "minimize", scale = 1.0 },
+    { plugin = "heretic.scorers.refusal_rate.RefusalRate", direction = "minimize"},
+    { plugin = "heretic.scorers.kl_divergence.KLDivergence", direction = "minimize"},
 ]
 
 # Whether to adjust the refusal directions so that only the component that is
@@ -165,8 +165,8 @@ column = "text"
 #
 # Example:
 # scorers = [
-#   { plugin = "heretic.scorers.refusal_rate.RefusalRate", direction = 1, scale = 1.0, instance_name = "small" },
-#   { plugin = "heretic.scorers.refusal_rate.RefusalRate", direction = 1, scale = 1.0, instance_name = "tiny" },
+#   { plugin = "heretic.scorers.refusal_rate.RefusalRate", direction = 'minimize', instance_name = "small" },
+#   { plugin = "heretic.scorers.refusal_rate.RefusalRate", direction = 'minimize', instance_name = "tiny" },
 # ]
 #
 # Shared defaults for all instances live under `[scorer.RefusalRate]` and can be overridden per

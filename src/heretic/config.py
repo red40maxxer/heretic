@@ -70,12 +70,11 @@ class ScorerConfig:
     Configuration for a scorer plugin.
 
     TOML format:
-    - { plugin = "<plugin>", direction = <direction>, scale = <scale>, instance_name = "<optional>" }
+    - { plugin = "<plugin>", direction = <direction>, instance_name = "<optional>" }
     """
 
     plugin: str
     direction: StudyDirection
-    scale: float
     instance_name: str | None = None
 
     @field_validator("direction", mode="before")
@@ -200,7 +199,7 @@ class Settings(BaseSettings):
         default_factory=list,
         description=(
             "List of scorer plugin configs. Each entry is an object"
-            " { plugin = <plugin>, direction = <direction>, scale = <scale>, instance_name = <optional> }."
+            " { plugin = <plugin>, direction = <direction>, instance_name = <optional> }."
             " <direction> is one of 'minimize', 'maximize', 'not_set' (aka do not optimize)."
         ),
     )

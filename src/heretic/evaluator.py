@@ -204,7 +204,7 @@ class Evaluator:
         for cfg, s in zip(self._scorer_configs, scores):
             if cfg.direction == StudyDirection.NOT_SET:
                 continue
-            values.append(float(s.value) * float(cfg.scale))
+            values.append(float(s.value))
         return tuple(values)
 
     def get_objective_directions(self) -> list[StudyDirection]:
